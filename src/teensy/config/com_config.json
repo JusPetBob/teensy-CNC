@@ -1,0 +1,29 @@
+{
+    "type":{
+        "command":1,
+        "info":2,
+        "warning":3,
+        "error":4
+    },
+    "message":{
+        "command":{
+            "ping":1,
+            "get_config":2
+        },
+        "info":{
+
+        },
+        "warning":{
+
+        },
+        "error":{
+
+        }
+    },
+    "return_data":{
+        "accept":1,
+        "deny":2,
+        "simple_data":3,
+        "complex_data":4
+    }
+}
