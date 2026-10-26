@@ -1,0 +1,42 @@
+hardware:
+  es_pin: B
+  e_stop: "?" # expected normaly closed -> activation on false
+
+  stepper:
+    en_pin: B # pin 
+    enable: "?" # false for enable low
+
+    x:
+      s_pin: B # pin
+      d_pin: B # pin
+      dir: "?" # positive direction (change to reverse direction)
+      steps: I # steps per mm
+
+    y:
+      s_pin: B # pin
+      d_pin: B # pin
+      dir: "?" # positive direction (change to reverse direction)
+      steps: I # steps per mm
+
+    z:
+      s_pin: B # pin
+      d_pin: B # pin
+      dir: "?" # positive direction (change to reverse direction)
+      steps: I # steps per mm
+
+  limit:
+    x:
+      pin: B
+      dir: "?" # true for positive direction
+
+    y:
+      pin: B
+      dir: "?" # true for positive direction
+
+    z:
+      pin: B
+      dir: "?" # true for positive direction
+
+motion:
+  accelerartion : H # mm/s^2
+  max_speed: H # mm/s
