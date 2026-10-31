@@ -47,7 +47,7 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
     
     print(f"{out_comment}\n\n{out_def}\n\n{out_init}\n\n#endif")
 
-    with open(path.join(p,export_dir,file_to_translate+".h"), "w") as f:
+    with open(path.join(p,export_dir,file_to_translate+"_gegerated"+".h"), "w") as f:
         f.write(f"{out_comment}\n\n{out_def}\n\n{out_init}\n\n#endif")
         
 

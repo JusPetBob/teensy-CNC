@@ -1,117 +1,75 @@
-/*
-*/
+#include "arm_math.h"
+#include <math.h>
+#include <sys/types.h>
+#include <stdint.h>
 
-#ifndef CONFIG_LIB_H_
-#define CONFIG_LIB_H_
+#ifndef CON_M_LIB_H_
+#define CON_M_LIB_H_
 
-#define config_expected_length 35
+class Config {
+  public:
+    Config(){config = {};}
 
+    // get config from pi and write to "CONFIG config"
+    bool get_config(uint8_t retrys) {
+      uint8_t t = 0;
+      bool suc = false;
 
-struct CONFIG{
+      // getting config with 1-255 retrys
+      while (t<retrys and !suc) {
+        uint8_t buffer[config_expected_length+4];
+        
+        // get config_buffer from complex data
+        size_t n = S_PI.get_complex(com_config.type.command,com_config.message.command.get_config,buffer,sizeof(buffer));
 
-  struct hardware{
-    uint8_t es_pin;
-    bool e_stop;
+        logging.info("response size ",false);
+        logging.send(n,true);
 
-    struct stepper{
-      uint8_t en_pin;
-      bool enable;
+        // parse buffer to "CONFIG config"
+        suc = load_config(buffer,n,&config);
+        if (!suc) {
+          logging.warning("config parsing failed, retrying");
+        }
+        // increment trys
+        t++;
+      }
+      return suc;
+    }
 
-      struct x{
-        uint8_t s_pin;
-        uint8_t d_pin;
-        bool dir;
-        uint32_t steps;
-      } x;
+    // configure pins 
+    void setup_config() {
+      //estop pin 
+      pinMode(config.hardware.es_pin,INPUT);
 
-      struct y{
-        uint8_t s_pin;
-        uint8_t d_pin;
-        bool dir;
-        uint32_t steps;
-      } y;
+      // enable pin + disable stepper
+      pinMode(config.hardware.stepper.en_pin,OUTPUT);
+      digitalWrite(config.hardware.stepper.en_pin, !config.hardware.stepper.enable);
 
-      struct z{
-        uint8_t s_pin;
-        uint8_t d_pin;
-        bool dir;
-        uint32_t steps;
-      } z;
-    } stepper;
+      // steppers
+      setup_stepper(&config.hardware.stepper.x); // x
+      setup_stepper(&config.hardware.stepper.y); // y
+      setup_stepper(&config.hardware.stepper.z); // z
 
-    struct limit{
+      // limits
+      setup_limits(&config.hardware.limit.x); // x
+      setup_limits(&config.hardware.limit.y); // y
+      setup_limits(&config.hardware.limit.z); // z
+    }
 
-      struct x{
-        uint8_t pin;
-        bool dir;
-      } x;
+    CONFIG config;
+    protected:
+    void setup_stepper(CONFIG::hardware::stepper::Steppers* st){
+      pinMode(st->s_pin,OUTPUT); // setup step pin
+      digitalWrite(st->s_pin,LOW);
 
-      struct y{
-        uint8_t pin;
-        bool dir;
-      } y;
-
-      struct z{
-        uint8_t pin;
-        bool dir;
-      } z;
-    } limit;
-  } hardware;
-
-  struct motion{
-    uint16_t accelerartion;
-    uint16_t max_speed;
-  } motion;
+      pinMode(st->d_pin,OUTPUT); // setup dir pin
+      digitalWrite(st->d_pin,st->dir);
+    }
+    void setup_limits(CONFIG::hardware::limit::Switches* st){
+      pinMode(st->pin,INPUT); // setup limit switches
+    }
 };
 
-
-bool load_config(uint8_t* buffer, size_t len, CONFIG* config) {
-  if (buffer == nullptr || config == nullptr || len != config_expected_length) return false;
-  if (
-    !(buffer[1] <= 1) ||
-    !(buffer[3] <= 1) ||
-    !(buffer[6] <= 1) ||
-    !(buffer[13] <= 1) ||
-    !(buffer[20] <= 1) ||
-    !(buffer[26] <= 1) ||
-    !(buffer[28] <= 1) ||
-    !(buffer[30] <= 1) 
-  ) return false; // bool validation
-
-  config->hardware.es_pin = buffer[0];
-  config->hardware.e_stop = buffer[1];
-
-  config->hardware.stepper.en_pin = buffer[2];
-  config->hardware.stepper.enable = buffer[3];
-
-  config->hardware.stepper.x.s_pin = buffer[4];
-  config->hardware.stepper.x.d_pin = buffer[5];
-  config->hardware.stepper.x.dir = buffer[6];
-  config->hardware.stepper.x.steps = (uint32_t)buffer[7] | ((uint32_t)buffer[8] << 8) | ((uint32_t)buffer[9] << 16) | ((uint32_t)buffer[10] << 24);
-
-  config->hardware.stepper.y.s_pin = buffer[11];
-  config->hardware.stepper.y.d_pin = buffer[12];
-  config->hardware.stepper.y.dir = buffer[13];
-  config->hardware.stepper.y.steps = (uint32_t)buffer[14] | ((uint32_t)buffer[15] << 8) | ((uint32_t)buffer[16] << 16) | ((uint32_t)buffer[17] << 24);
-
-  config->hardware.stepper.z.s_pin = buffer[18];
-  config->hardware.stepper.z.d_pin = buffer[19];
-  config->hardware.stepper.z.dir = buffer[20];
-  config->hardware.stepper.z.steps = (uint32_t)buffer[21] | ((uint32_t)buffer[22] << 8) | ((uint32_t)buffer[23] << 16) | ((uint32_t)buffer[24] << 24);
-
-  config->hardware.limit.x.pin = buffer[25];
-  config->hardware.limit.x.dir = buffer[26];
-
-  config->hardware.limit.y.pin = buffer[27];
-  config->hardware.limit.y.dir = buffer[28];
-
-  config->hardware.limit.z.pin = buffer[29];
-  config->hardware.limit.z.dir = buffer[30];
-
-  config->motion.accelerartion = (uint16_t)buffer[31] | ((uint16_t)buffer[32] << 8);
-  config->motion.max_speed = (uint16_t)buffer[33] | ((uint16_t)buffer[34] << 8);
-
-  return true;
-};
+Config config = Config();
 
 #endif

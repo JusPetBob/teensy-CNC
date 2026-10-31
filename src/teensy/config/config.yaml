@@ -6,36 +6,29 @@ hardware:
     en_pin: B # pin 
     enable: "?" # false for enable low
 
-    x:
+    Steppers<type>:
       s_pin: B # pin
       d_pin: B # pin
       dir: "?" # positive direction (change to reverse direction)
       steps: I # steps per mm
 
-    y:
-      s_pin: B # pin
-      d_pin: B # pin
-      dir: "?" # positive direction (change to reverse direction)
-      steps: I # steps per mm
+    x<def>: Steppers
 
-    z:
-      s_pin: B # pin
-      d_pin: B # pin
-      dir: "?" # positive direction (change to reverse direction)
-      steps: I # steps per mm
+    y<def>: Steppers
+
+    z<def>: Steppers
 
   limit:
-    x:
+
+    Switches<type>:
       pin: B
       dir: "?" # true for positive direction
 
-    y:
-      pin: B
-      dir: "?" # true for positive direction
+    x<def>: Switches
 
-    z:
-      pin: B
-      dir: "?" # true for positive direction
+    y<def>: Switches
+
+    z<def>: Switches
 
 motion:
   accelerartion : H # mm/s^2

@@ -4,7 +4,7 @@ import json
 from yaml import Loader
 
 def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
-    global out_def,out_load,counter,out_load_bool_validation
+    global out_def,out_load,counter,out_load_bool_validation,types
     
     out_def = ""
     
@@ -13,25 +13,50 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
     out_load_bool_validation = "  if (\n"
     
     counter = 0
+    
+    types={}
+
+
+    def def_type(d,pos,m):
+        global out_load,counter,out_load_bool_validation
+        
+        v = [f"{'(' if k!=0 else ''}({m['arduino'].get(d)})buffer[{counter+k}]{f' << {k*8})' if k!=0 else ''}" for k in range(m["size"].get(d))]
+                
+        out_load += f"  {pos} = {' | '.join(v) if m['size'].get(d)!=1 else f'buffer[{counter}]'};\n"
+        
+        if d=="?":
+            out_load_bool_validation += f"    !(buffer[{counter}] <= 1) ||\n"
+        
+        counter += m["size"].get(d)
 
     def generate_out(n: str,d,level: int,pos,m):
-        global out_def,out_load,out_load_bool_validation,counter
+        global out_def,out_load,out_load_bool_validation,counter,types
         
         if not isinstance(d,dict):
             print(f"{n:<15} {d:>2} {level:>2}  {pos}")
-            out_def += f"{'  '*level}{m['arduino'].get(d)} {n};\n"
+            if n.endswith("<def>"):
+                n = n.removesuffix('<def>')
+                out_def += f"{'  '*level}{d} {n};\n"
+                
+                for i in types[d].keys():
+                    def_type(types[d][i],f"{pos.removesuffix('<def>')}.{i}",m)
+                
+                out_load += "\n"
+                    
+            else:
+                out_def += f"{'  '*level}{m['arduino'].get(d)} {n};\n"
+                
+                if "<type>" not in pos:
+                    def_type(d,pos,m)
             
-            v = [f"{'(' if k!=0 else ''}({m['arduino'].get(d)})buffer[{counter+k}]{f' << {k*8})' if k!=0 else ''}" for k in range(m["size"].get(d))]
-            
-            out_load += f"  {pos} = {' | '.join(v) if m['size'].get(d)!=1 else f'buffer[{counter}]'};\n"
-            
-            if d=="?":
-                out_load_bool_validation += f"    !(buffer[{counter}] <= 1) ||\n"
-            
-            counter += m["size"].get(d)
-            
-        
         else:
+            if n.endswith("<type>"):
+                n = n.removesuffix("<type>")
+                types[n]=d
+                l=0
+            else: 
+                l=level
+            
             out_def += f"\n{'  '*level}struct {n}{'{'}\n"
             
             out_load += "" if out_load.endswith("\n\n") else "\n"
@@ -39,7 +64,7 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
             for i in d.keys():
                 generate_out(i,d[i],level+1,f"{pos}{f'.{i}' if level!=0 else f'->{i}'}",m)
                 
-            out_def += f"{'  '*level}{'}'}{' '+n if level!=0 else ''};\n"
+            out_def += f"{'  '*level}{'}'}{' '+n if l!=0 else ''};\n"
 
 
     with open(path.join(p,source_dir,file_to_translate+".yaml"),"r") as f:
@@ -69,7 +94,7 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
 
     print(f"{out_comment}\n\n#define config_expected_length{counter}\n\n{out_def}\n\n{out_load}\n\n#endif")
 
-    with open(path.join(p,export_dir,file_to_translate+".h"), "w") as f:
+    with open(path.join(p,export_dir,file_to_translate+"_gegerated"+".h"), "w") as f:
         f.write(f"{out_comment}\n\n#define config_expected_length {counter}\n\n{out_def}\n\n{out_load}\n\n#endif")
         
 
