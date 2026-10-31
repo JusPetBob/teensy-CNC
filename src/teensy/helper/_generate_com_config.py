@@ -43,12 +43,12 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
         with open(comment_file,"r") as f:
             out_comment += f.read()
 
-    out_comment += "*/"
+    out_comment += f"*/\n\n#ifndef {file_to_translate.upper()}_LIB_H_\n#define {file_to_translate.upper()}_LIB_H_"
     
-    print(f"{out_comment}\n\n{out_def}\n\n{out_init}")
+    print(f"{out_comment}\n\n{out_def}\n\n{out_init}\n\n#endif")
 
     with open(path.join(p,export_dir,file_to_translate+".h"), "w") as f:
-        f.write(f"{out_comment}\n\n{out_def}\n\n{out_init}")
+        f.write(f"{out_comment}\n\n{out_def}\n\n{out_init}\n\n#endif")
         
 
 if __name__ == "__main__":

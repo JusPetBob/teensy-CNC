@@ -1,6 +1,9 @@
 /*
 */
 
+#ifndef CONFIG_LIB_H_
+#define CONFIG_LIB_H_
+
 #define config_expected_length 35
 
 
@@ -110,3 +113,5 @@ bool load_config(uint8_t* buffer, size_t len, CONFIG* config) {
 
   return true;
 };
+
+#endif

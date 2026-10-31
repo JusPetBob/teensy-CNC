@@ -1,15 +1,10 @@
-/*
-comms protocol:
-see com_config.h
+#include <Arduino.h>
 
-
-*/
-
-#include "include/com_config.h"
+#include "com_config.h"
 #include "com.h"
 
-#include "include/config.h"
 #include "config.h"
+#include "config_manager.h"
 
 const uint8_t sd_cs = 44;
 
@@ -22,13 +17,11 @@ const uint8_t dir_1_pin = 3;
 void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
 
-  logging.begin(250000);
+  logging.begin(115200);
 
   logging.info("InIt started");
 
   S_PI.begin(250000);
-
-  logging.warning(S_PI.get_simple(1, 4));
 
   logging.info("ping... ", false);
 

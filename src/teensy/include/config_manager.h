@@ -3,6 +3,8 @@
 #include <sys/types.h>
 #include <stdint.h>
 
+#ifndef CON_M_LIB_H_
+#define CON_M_LIB_H_
 
 CONFIG config = {};
 
@@ -16,3 +18,5 @@ bool get_config() {
 
   return load_config(buffer,n,&config);
 }
+
+#endif

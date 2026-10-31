@@ -19,9 +19,11 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
         
         if not isinstance(d,dict):
             print(f"{n:<15} {d:>2} {level:>2}  {pos}")
-            out_def += f"{'  '*level}{m["arduino"].get(d)} {n};\n"
+            out_def += f"{'  '*level}{m['arduino'].get(d)} {n};\n"
             
-            out_load += f"  {pos} = {' | '.join([f'{'('if k!=0 else ''}({m["arduino"].get(d)})buffer[{counter+k}]{f" << {k*8})" if k!=0 else ""}' for k in range(m["size"].get(d))]) if m["size"].get(d)!=1 else f"buffer[{counter}]"};\n"
+            v = [f"{'(' if k!=0 else ''}({m['arduino'].get(d)})buffer[{counter+k}]{f' << {k*8})' if k!=0 else ''}" for k in range(m["size"].get(d))]
+            
+            out_load += f"  {pos} = {' | '.join(v) if m['size'].get(d)!=1 else f'buffer[{counter}]'};\n"
             
             if d=="?":
                 out_load_bool_validation += f"    !(buffer[{counter}] <= 1) ||\n"
@@ -35,7 +37,7 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
             out_load += "" if out_load.endswith("\n\n") else "\n"
             
             for i in d.keys():
-                generate_out(i,d[i],level+1,f"{pos}{f".{i}" if level!=0 else f"->{i}"}",m)
+                generate_out(i,d[i],level+1,f"{pos}{f'.{i}' if level!=0 else f'->{i}'}",m)
                 
             out_def += f"{'  '*level}{'}'}{' '+n if level!=0 else ''};\n"
 
@@ -63,12 +65,12 @@ def generate(source_dir:str,file_to_translate:str,export_dir:str,p:str):
         with open(comment_file,"r") as f:
             out_comment += f.read()
 
-    out_comment += "*/"
+    out_comment += f"*/\n\n#ifndef {file_to_translate.upper()}_LIB_H_\n#define {file_to_translate.upper()}_LIB_H_"
 
-    print(f"{out_comment}\n\n#define config_expected_length{counter}\n\n{out_def}\n\n{out_load}")
+    print(f"{out_comment}\n\n#define config_expected_length{counter}\n\n{out_def}\n\n{out_load}\n\n#endif")
 
     with open(path.join(p,export_dir,file_to_translate+".h"), "w") as f:
-        f.write(f"{out_comment}\n\n#define config_expected_length {counter}\n\n{out_def}\n\n{out_load}")
+        f.write(f"{out_comment}\n\n#define config_expected_length {counter}\n\n{out_def}\n\n{out_load}\n\n#endif")
         
 
 if __name__ == "__main__":

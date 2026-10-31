@@ -5,14 +5,14 @@ export SOURCEDIR=config
 export FILENAME=config
 export EXPORTDIR=include
 
-
 if [ ! -f $WORKDIR/helper/.venv/bin/activate ]; then
     python -m venv $WORKDIR/helper/.venv
+    source $WORKDIR/helper/.venv/bin/activate
+    python -m pip install --upgrade pip
+    python -m pip install -r $WORKDIR/helper/requirements.txt
+else 
+    source $WORKDIR/helper/.venv/bin/activate
 fi
-
-source $WORKDIR/helper/.venv/bin/activate
-
-python -m pip install -r $WORKDIR/helper/requirements.txt
 
 echo "config.h :"
 

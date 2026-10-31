@@ -28,6 +28,9 @@ return coms protocol:
 
 */
 
+#ifndef COM_CONFIG_LIB_H_
+#define COM_CONFIG_LIB_H_
+
 struct COM_CONFIG{
   struct type{
     uint8_t command;
@@ -82,3 +85,6 @@ constexpr COM_CONFIG com_config = {
      4
   }
 };
+
+
+#endif
